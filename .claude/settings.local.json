@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_publishable_keys",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__execute_sql",
+      "PowerShell(if \\(Test-Path .env.local\\) { Write-Output \"=== .env.local keys present ===\"; \\(Get-Content .env.local\\) | ForEach-Object { \\($_ -split '='\\)[0] } } else { Write-Output \".env.local NOT FOUND\" }; Write-Output \"---\"; if \\(Test-Path .env.example\\) { Write-Output \"=== .env.example ===\"; Get-Content .env.example })",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl -sL https://api.github.com/repos/gsd-build/get-shit-done/contents)",
+      "Bash(curl -sL \"https://registry.npmjs.org/@opengsd/get-shit-done-redux/latest\")",
+      "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\);process.stdin.on\\('end',\\(\\)=>{try{const d=JSON.parse\\(s\\);console.log\\('version:',d.version\\);console.log\\('bin:',JSON.stringify\\(d.bin\\)\\);console.log\\('description:',d.description\\);}catch\\(e\\){console.log\\('parse error:',s.slice\\(0,300\\)\\)}}\\)\")",
+      "Bash(npx -y @opengsd/get-shit-done-redux@latest --help)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}

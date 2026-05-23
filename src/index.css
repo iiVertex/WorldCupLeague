@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-navy-900 text-white font-sans antialiased;
+    background-image:
+      radial-gradient(circle at 20% -10%, rgba(79, 195, 247, 0.12), transparent 45%),
+      radial-gradient(circle at 90% 0%, rgba(41, 182, 246, 0.08), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  /* Hide number input spinners for a cleaner score field */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-white/10 bg-navy-700/80 backdrop-blur-sm shadow-card;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-navy-850 px-3 py-2.5 text-white placeholder-white/40
+      outline-none transition focus:border-sky-accent focus:ring-2 focus:ring-sky-accent/40 disabled:opacity-50;
+  }
+
+  .label {
+    @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-white/50;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold
+      transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn bg-sky-accent text-navy-950 hover:bg-sky-accent2 shadow-glow;
+  }
+
+  .btn-ghost {
+    @apply btn border border-white/15 bg-white/5 text-white hover:bg-white/10;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-500;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide;
+  }
+}
