@@ -193,11 +193,16 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
             <label className="label">Assist</label>
             <input
               className="input"
-              placeholder="e.g. Di María"
+              placeholder={form.wc_assist ? 'e.g. Di María' : 'Activate the 🅰 Assist card to predict'}
               value={form.pred_assist}
-              disabled={!editable}
+              disabled={!editable || !form.wc_assist}
               onChange={(e) => set('pred_assist', e.target.value)}
             />
+            {editable && !form.wc_assist && (
+              <p className="mt-1 text-xs text-white/40">
+                Play the 🅰 Assist card below to enter an assist prediction (+1 if correct).
+              </p>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-3 pt-1">
@@ -211,7 +216,9 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
               label="🅰 Assist +1"
               checked={form.wc_assist}
               disabled={!editable || !canAssist}
-              onChange={(v) => set('wc_assist', v)}
+              onChange={(v) =>
+                setForm((f) => ({ ...f, wc_assist: v, pred_assist: v ? f.pred_assist : '' }))
+              }
             />
           </div>
 
