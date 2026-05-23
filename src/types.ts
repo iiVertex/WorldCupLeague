@@ -62,4 +62,5 @@ export interface LeaderboardRow {
 }
 
 // Derived match lifecycle state used by the UI.
-export type MatchStatus = 'upcoming' | 'locked' | 'halftime' | 'final'
+// `scheduled` = kickoff is further away than the prediction window, so it's not open yet.
+export type MatchStatus = 'scheduled' | 'upcoming' | 'locked' | 'halftime' | 'final'

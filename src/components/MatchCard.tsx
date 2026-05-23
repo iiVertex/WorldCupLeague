@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Match, Prediction, PredictionPhase } from '../types'
-import { matchStatus, scorePrediction } from '../lib/scoring'
+import { matchStatus, scorePrediction, PREDICTION_WINDOW_HOURS } from '../lib/scoring'
 import { StatusBadge } from './StatusBadge'
 import { Countdown } from './Countdown'
 import { Flag } from './Flag'
@@ -239,6 +239,10 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
                       ? 'Update Prediction'
                       : 'Submit Prediction'}
             </button>
+          ) : status === 'scheduled' ? (
+            <p className="text-center text-sm text-white/40">
+              Predictions open {PREDICTION_WINDOW_HOURS}h before kickoff.
+            </p>
           ) : (
             <p className="text-center text-sm text-white/40">
               Predictions are locked for this match.

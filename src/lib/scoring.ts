@@ -69,13 +69,20 @@ export function scorePrediction(
 
 const resultSign = (a: number, b: number) => Math.sign(a - b)
 
+// Predictions open only within this many hours before kickoff. Earlier than that
+// the match is 'scheduled' (locked). Mirrors the predictions RLS policies.
+export const PREDICTION_WINDOW_HOURS = 10
+
 /** Derive the lifecycle state of a match for UI display. */
 export function matchStatus(match: Match, now: Date = new Date()): MatchStatus {
   if (match.final_home !== null && match.final_away !== null && match.results_published) {
     return 'final'
   }
   const kickoff = new Date(match.kickoff)
-  if (now < kickoff) return 'upcoming'
+  if (now < kickoff) {
+    const opensAt = new Date(kickoff.getTime() - PREDICTION_WINDOW_HOURS * 60 * 60 * 1000)
+    return now < opensAt ? 'scheduled' : 'upcoming'
+  }
   if (match.halftime_open) return 'halftime'
   return 'locked'
 }

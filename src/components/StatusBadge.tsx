@@ -1,6 +1,7 @@
 import type { MatchStatus } from '../types'
 
 const STYLES: Record<MatchStatus, { label: string; cls: string }> = {
+  scheduled: { label: 'Soon', cls: 'bg-white/10 text-white/50 border border-white/15' },
   upcoming: { label: 'Open', cls: 'bg-success/15 text-success border border-success/30' },
   locked: { label: 'Locked', cls: 'bg-white/10 text-white/60 border border-white/15' },
   halftime: { label: 'Half-time', cls: 'bg-warn/15 text-warn border border-warn/30' },
