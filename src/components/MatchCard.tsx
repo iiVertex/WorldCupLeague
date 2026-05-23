@@ -264,10 +264,20 @@ function Team({
   align: 'left' | 'right'
 }) {
   return (
-    <div className={`flex items-center gap-2 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
-      {align === 'left' && <Flag flag={flag} className="h-7" />}
-      <span className="font-display font-bold leading-tight">{name}</span>
-      {align === 'right' && <Flag flag={flag} className="h-7" />}
+    <div
+      className={`flex min-w-0 items-center gap-2 ${
+        align === 'right' ? 'justify-end' : 'justify-start'
+      }`}
+    >
+      {align === 'left' && <Flag flag={flag} className="h-6 shrink-0 sm:h-7" />}
+      <span
+        className={`min-w-0 break-words font-display text-sm font-bold leading-tight sm:text-base ${
+          align === 'right' ? 'text-right' : 'text-left'
+        }`}
+      >
+        {name}
+      </span>
+      {align === 'right' && <Flag flag={flag} className="h-6 shrink-0 sm:h-7" />}
     </div>
   )
 }
