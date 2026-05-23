@@ -16,7 +16,11 @@
       "Bash(curl -sL https://api.github.com/repos/gsd-build/get-shit-done/contents)",
       "Bash(curl -sL \"https://registry.npmjs.org/@opengsd/get-shit-done-redux/latest\")",
       "Bash(node -e \"let s='';process.stdin.on\\('data',d=>s+=d\\);process.stdin.on\\('end',\\(\\)=>{try{const d=JSON.parse\\(s\\);console.log\\('version:',d.version\\);console.log\\('bin:',JSON.stringify\\(d.bin\\)\\);console.log\\('description:',d.description\\);}catch\\(e\\){console.log\\('parse error:',s.slice\\(0,300\\)\\)}}\\)\")",
-      "Bash(npx -y @opengsd/get-shit-done-redux@latest --help)"
+      "Bash(npx -y @opengsd/get-shit-done-redux@latest --help)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(curl -s \"https://world-cup-league-three.vercel.app/\")",
+      "Bash(curl -s \"https://world-cup-league-three.vercel.app/assets/index-LB-JRb43.js\")"
     ]
   },
   "enableAllProjectMcpServers": true,

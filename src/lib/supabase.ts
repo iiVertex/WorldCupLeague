@@ -3,6 +3,9 @@ import { createClient } from '@supabase/supabase-js'
 const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
+// Build-time diagnostic: prints whether each var was inlined into the bundle.
+console.info('[supabase] env check — url:', url ? 'set' : 'MISSING', '| anonKey:', anonKey ? 'set' : 'MISSING')
+
 if (!url || !anonKey || anonKey.startsWith('REPLACE_')) {
   // Surfaced clearly in the console so a missing .env.local is obvious.
   console.error(
