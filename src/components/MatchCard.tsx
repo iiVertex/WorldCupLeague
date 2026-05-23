@@ -3,6 +3,7 @@ import type { Match, Prediction, PredictionPhase } from '../types'
 import { matchStatus, scorePrediction } from '../lib/scoring'
 import { StatusBadge } from './StatusBadge'
 import { Countdown } from './Countdown'
+import { Flag } from './Flag'
 
 export interface PredictionInput {
   pred_home: number | ''
@@ -260,9 +261,9 @@ function Team({
 }) {
   return (
     <div className={`flex items-center gap-2 ${align === 'right' ? 'justify-end' : 'justify-start'}`}>
-      {align === 'left' && <span className="text-3xl">{flag ?? '🏳️'}</span>}
+      {align === 'left' && <Flag flag={flag} className="h-7" />}
       <span className="font-display font-bold leading-tight">{name}</span>
-      {align === 'right' && <span className="text-3xl">{flag ?? '🏳️'}</span>}
+      {align === 'right' && <Flag flag={flag} className="h-7" />}
     </div>
   )
 }

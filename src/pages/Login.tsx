@@ -33,7 +33,11 @@ export default function Login() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">
-          <img src="/ball.svg" alt="" className="mx-auto h-14 w-14" />
+          <img
+            src="/logo.png"
+            alt="FIFA World Cup 26"
+            className="mx-auto h-24 w-auto rounded-xl bg-white p-2"
+          />
           <h1 className="mt-3 font-display text-2xl font-extrabold text-sky-accent">
             FIFA World Cup 2026
           </h1>

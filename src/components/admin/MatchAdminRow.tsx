@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../Toast'
+import { Flag } from '../Flag'
 import type { Match } from '../../types'
 
 interface Props {
@@ -90,8 +91,8 @@ export function MatchAdminRow({ match, onChanged, onCalculate, calculating }: Pr
     <div className="card space-y-4 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="font-display font-bold">
-          {match.home_flag} {match.home_team} <span className="text-white/40">vs</span>{' '}
-          {match.away_team} {match.away_flag}
+          <Flag flag={match.home_flag} /> {match.home_team} <span className="text-white/40">vs</span>{' '}
+          {match.away_team} <Flag flag={match.away_flag} />
           {match.is_test && <span className="ml-2 text-warn">🧪</span>}
         </div>
         <div className="text-xs text-white/40">

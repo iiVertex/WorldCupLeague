@@ -15,7 +15,11 @@ export function Header() {
     <header className="sticky top-0 z-30 border-b border-white/10 bg-navy-900/80 backdrop-blur">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/ball.svg" alt="" className="h-8 w-8" />
+          <img
+            src="/logo.png"
+            alt="FIFA World Cup 26"
+            className="h-10 w-auto rounded-md bg-white p-1"
+          />
           <span className="font-display text-lg font-extrabold text-sky-accent sm:text-xl">
             World Cup 2026 League
           </span>
