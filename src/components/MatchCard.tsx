@@ -82,7 +82,7 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
       {/* Teams */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
         <Team name={match.home_team} flag={match.home_flag} align="right" />
-        <div className="text-center">
+        <div className="px-1 text-center">
           {published ? (
             <div className="font-display text-2xl font-extrabold text-sky-accent">
               {match.final_home}–{match.final_away}
@@ -90,17 +90,17 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
           ) : (
             <div className="font-display text-lg font-bold text-white/40">vs</div>
           )}
-          <div className="mt-1 text-[11px] text-white/40">
-            {new Date(match.kickoff).toLocaleString(undefined, {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </div>
         </div>
         <Team name={match.away_team} flag={match.away_flag} align="left" />
+      </div>
+      <div className="mt-2 text-center text-[11px] text-white/40">
+        {new Date(match.kickoff).toLocaleString(undefined, {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
       </div>
 
       {/* Published result detail */}
@@ -265,19 +265,21 @@ function Team({
 }) {
   return (
     <div
-      className={`flex min-w-0 items-center gap-2 ${
-        align === 'right' ? 'justify-end' : 'justify-start'
+      className={`flex min-w-0 flex-col items-center gap-1 text-center sm:flex-row sm:gap-2 ${
+        align === 'right' ? 'sm:justify-end sm:text-right' : 'sm:justify-start sm:text-left'
       }`}
     >
-      {align === 'left' && <Flag flag={flag} className="h-6 shrink-0 sm:h-7" />}
+      <Flag
+        flag={flag}
+        className={`h-7 shrink-0 ${align === 'right' ? 'sm:order-2' : 'sm:order-1'}`}
+      />
       <span
         className={`min-w-0 break-words font-display text-sm font-bold leading-tight sm:text-base ${
-          align === 'right' ? 'text-right' : 'text-left'
+          align === 'right' ? 'sm:order-1' : 'sm:order-2'
         }`}
       >
         {name}
       </span>
-      {align === 'right' && <Flag flag={flag} className="h-6 shrink-0 sm:h-7" />}
     </div>
   )
 }
