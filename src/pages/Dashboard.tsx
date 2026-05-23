@@ -90,8 +90,8 @@ export default function Dashboard() {
         {
           match_id: matchId,
           player_id: player!.id,
-          pred_home: values.pred_home,
-          pred_away: values.pred_away,
+          pred_home: Number(values.pred_home) || 0,
+          pred_away: Number(values.pred_away) || 0,
           pred_scorer: values.pred_scorer || null,
           pred_assist: values.pred_assist || null,
           wc_double: values.wc_double,

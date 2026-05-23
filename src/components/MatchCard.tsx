@@ -5,8 +5,8 @@ import { StatusBadge } from './StatusBadge'
 import { Countdown } from './Countdown'
 
 export interface PredictionInput {
-  pred_home: number
-  pred_away: number
+  pred_home: number | ''
+  pred_away: number | ''
   pred_scorer: string
   pred_assist: string
   wc_double: boolean
@@ -30,8 +30,8 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
   const source = phase === 'late' ? (late ?? initial) : initial
 
   const [form, setForm] = useState<PredictionInput>(() => ({
-    pred_home: source?.pred_home ?? 0,
-    pred_away: source?.pred_away ?? 0,
+    pred_home: source?.pred_home ?? '',
+    pred_away: source?.pred_away ?? '',
     pred_scorer: source?.pred_scorer ?? '',
     pred_assist: source?.pred_assist ?? '',
     wc_double: source?.wc_double ?? false,
@@ -152,9 +152,13 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
                 type="number"
                 min={0}
                 className="input"
+                placeholder="0"
                 value={form.pred_home}
                 disabled={!editable}
-                onChange={(e) => set('pred_home', Math.max(0, Number(e.target.value)))}
+                onChange={(e) => {
+                  const v = e.target.value
+                  set('pred_home', v === '' ? '' : Math.max(0, Number(v)))
+                }}
               />
             </div>
             <div>
@@ -163,9 +167,13 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
                 type="number"
                 min={0}
                 className="input"
+                placeholder="0"
                 value={form.pred_away}
                 disabled={!editable}
-                onChange={(e) => set('pred_away', Math.max(0, Number(e.target.value)))}
+                onChange={(e) => {
+                  const v = e.target.value
+                  set('pred_away', v === '' ? '' : Math.max(0, Number(v)))
+                }}
               />
             </div>
           </div>
@@ -200,7 +208,7 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
               onChange={(v) => set('wc_double', v)}
             />
             <Wildcard
-              label="🅰 Assist ×2"
+              label="🅰 Assist +1"
               checked={form.wc_assist}
               disabled={!editable || !canAssist}
               onChange={(v) => set('wc_assist', v)}

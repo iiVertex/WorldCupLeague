@@ -1,11 +1,14 @@
 import type { Match, MatchStatus, Prediction } from '../types'
 
-// Standard scoring scheme (mirror of the server-side score_match RPC).
+// Standard scoring scheme (mirror of the server-side score_prediction RPC).
+// Each component is worth 1 point; the home score, away score and winner are
+// scored independently (a perfect scoreline = home + away + winner = 3).
 export const POINTS = {
-  exactScore: 5,
-  correctResult: 2,
-  scorer: 2,
-  assist: 2,
+  homeScore: 1,
+  awayScore: 1,
+  result: 1,
+  scorer: 1,
+  assist: 1,
 } as const
 
 /**
@@ -30,13 +33,17 @@ export function scorePrediction(
   const breakdown: string[] = []
   let total = 0
 
-  const exact = pred.pred_home === final_home && pred.pred_away === final_away
-  if (exact) {
-    total += POINTS.exactScore
-    breakdown.push(`Exact score +${POINTS.exactScore}`)
-  } else if (resultSign(pred.pred_home, pred.pred_away) === resultSign(final_home, final_away)) {
-    total += POINTS.correctResult
-    breakdown.push(`Correct result +${POINTS.correctResult}`)
+  if (pred.pred_home === final_home) {
+    total += POINTS.homeScore
+    breakdown.push(`Home score +${POINTS.homeScore}`)
+  }
+  if (pred.pred_away === final_away) {
+    total += POINTS.awayScore
+    breakdown.push(`Away score +${POINTS.awayScore}`)
+  }
+  if (resultSign(pred.pred_home, pred.pred_away) === resultSign(final_home, final_away)) {
+    total += POINTS.result
+    breakdown.push(`Winner +${POINTS.result}`)
   }
 
   const scorer = pred.pred_scorer?.trim().toLowerCase()
@@ -45,11 +52,11 @@ export function scorePrediction(
     breakdown.push(`Goalscorer +${POINTS.scorer}`)
   }
 
+  // Assist only counts when the Assist wildcard was played on this match.
   const assist = pred.pred_assist?.trim().toLowerCase()
-  if (assist && assisters.includes(assist)) {
-    const assistPts = pred.wc_assist ? POINTS.assist * 2 : POINTS.assist
-    total += assistPts
-    breakdown.push(`Assist +${assistPts}${pred.wc_assist ? ' (wildcard ×2)' : ''}`)
+  if (pred.wc_assist && assist && assisters.includes(assist)) {
+    total += POINTS.assist
+    breakdown.push(`Assist +${POINTS.assist}`)
   }
 
   if (pred.wc_double) {

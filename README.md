@@ -7,13 +7,15 @@ scores / scorers / assists, spend wildcards, and an admin reveals results and po
 ## How it plays
 
 - **Predict** each match: score, goalscorer, assist.
-- **Scoring (standard):** exact score **5** · correct result only **2** · correct
-  goalscorer **+2** · correct assist **+2**.
+- **Scoring:** home score **+1** · away score **+1** · correct winner **+1** · correct
+  goalscorer **+1** · correct assist **+1**. The home score, away score and winner are scored
+  independently, so a perfect scoreline is worth 3 points.
 - **Wildcards (5 each):**
   - **Double Points** — ×2 your total points for that match.
   - **Late Prediction** — submit a *second* prediction, allowed only while the admin has the
     match's half-time window open; it supersedes your original.
-  - **Assist** — doubles the assist points (correct assist becomes +4).
+  - **Assist** — unlocks the assist prediction: a correct assist scores **+1**. Without this
+    wildcard your assist pick is ignored.
 - **Admin** (the `ammar` account) enters results, calculates points, makes corrections, and
   controls **when results become visible** (nothing shows until "Results published" is on).
 

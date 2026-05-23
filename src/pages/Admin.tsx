@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../auth/AuthProvider'
 import { useToast } from '../components/Toast'
 import { Header } from '../components/Header'
 import { Spinner } from '../components/Spinner'
@@ -18,6 +19,7 @@ type MatchWithResult = Omit<
 export default function Admin() {
   const toast = useToast()
   const qc = useQueryClient()
+  const { refreshPlayer } = useAuth()
   const [tab, setTab] = useState<'matches' | 'corrections'>('matches')
 
   const matchesQ = useQuery({
@@ -60,7 +62,11 @@ export default function Admin() {
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ['admin-matches'] })
     qc.invalidateQueries({ queryKey: ['matches'] })
+    qc.invalidateQueries({ queryKey: ['admin-players'] })
     qc.invalidateQueries({ queryKey: ['leaderboard'] })
+    // Wildcard allowances live on the auth player profile, not in a query —
+    // refetch it so edits to your own account show without a page reload.
+    void refreshPlayer()
   }
 
   const calcScore = useMutation({

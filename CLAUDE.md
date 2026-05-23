@@ -39,7 +39,7 @@ The scoring formula exists as both:
 - `src/lib/scoring.ts` — `scorePrediction()`, used client-side for live previews and the points breakdown shown on cards.
 - The Postgres `score_match(p_match_id)` RPC + `score_prediction(...)` function — the **authoritative** scorer the admin runs.
 
-Both implement: exact score **+5**, else correct result **+2**; correct goalscorer **+2**; correct assist **+2** (**+4** with the assist wildcard); whole match total **×2** with the double-points wildcard. **Editing one requires editing the other**, or admin-calculated points will diverge from the preview.
+Both implement: **+1** home score, **+1** away score, **+1** correct winner/result — each scored independently, so a perfect scoreline is worth 3; **+1** correct goalscorer; **+1** correct assist **but only when the assist wildcard was played on that match** (no card → the assist pick is ignored); whole match total **×2** with the double-points wildcard. **Editing one requires editing the other**, or admin-calculated points will diverge from the preview.
 
 ### Prediction phases (initial vs late)
 A prediction is uniquely keyed by `(match_id, player_id, phase)` where phase is `initial` or `late`. The Dashboard upserts on that conflict target. `late` is only writable while `halftime_open` and **supersedes** the initial pick (`late ?? initial` is the one that counts). `score_match` zeroes the superseded `initial` row so leaderboard sums never double-count. `matchStatus()` in `scoring.ts` derives the UI lifecycle: `upcoming → locked → halftime → final`.
@@ -47,7 +47,7 @@ A prediction is uniquely keyed by `(match_id, player_id, phase)` where phase is 
 ### Other invariants
 - **`points` is server-only.** A trigger (`enforce_prediction_points`) forces non-admin writes to keep the prior `points` value, so players can't set their own score via the API.
 - **Wildcard limits are not enforced in the DB.** "Remaining" is computed client-side in `Dashboard.tsx` as `allowance − distinct matches used`; the admin reconciles via the Corrections tab. Per league rules each player gets **5 of each** wildcard (Double Points, Late, Assist).
-- **`leaderboard`** is a view summing `points` across non-test matches (`is_test` matches are excluded from standings but still scored/shown on their card).
+- **`leaderboard`** is a view (over the `leaderboard_rows()` SECURITY DEFINER function) summing `points` across **all** matches, including `is_test` ones. (Test matches used to be excluded from standings; that exclusion was removed so test-match points now count.)
 - Data fetching uses **TanStack Query**; mutations call `qc.invalidateQueries` to refresh. Cross-cutting refreshes (admin) invalidate `admin-matches`, `matches`, and `leaderboard` together.
 
 ## Database changes
