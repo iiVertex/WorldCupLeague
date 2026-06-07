@@ -11,6 +11,26 @@ export const POINTS = {
   assist: 1,
 } as const
 
+// Non-decomposing accented letters the SQL `normalize_name` folds via translate()
+// but that NFD diacritic-stripping leaves intact. Listed explicitly so the client
+// and server normalizers stay aligned.
+const SPECIAL_FOLDS: Record<string, string> = { ø: 'o', đ: 'd', ł: 'l' }
+
+/**
+ * Normalize a scorer/assist name for matching: lowercase, strip accents, collapse
+ * internal whitespace, trim ends. MUST stay in sync with the Postgres
+ * `normalize_name(text)` function used by the authoritative score_prediction RPC.
+ */
+export function normalizeName(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/[øđł]/g, (c) => SPECIAL_FOLDS[c] ?? c)
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /**
  * Compute the points a single prediction earns against a finished match.
  * This is the same logic the database RPC applies; we keep a client copy so
@@ -28,8 +48,8 @@ export function scorePrediction(
     return { total: 0, breakdown: [] }
   }
 
-  const scorers = (match.scorers ?? []).map((s) => s.trim().toLowerCase())
-  const assisters = (match.assisters ?? []).map((s) => s.trim().toLowerCase())
+  const scorers = (match.scorers ?? []).map(normalizeName)
+  const assisters = (match.assisters ?? []).map(normalizeName)
   const breakdown: string[] = []
   let total = 0
 
@@ -46,14 +66,14 @@ export function scorePrediction(
     breakdown.push(`Winner +${POINTS.result}`)
   }
 
-  const scorer = pred.pred_scorer?.trim().toLowerCase()
+  const scorer = pred.pred_scorer ? normalizeName(pred.pred_scorer) : ''
   if (scorer && scorers.includes(scorer)) {
     total += POINTS.scorer
     breakdown.push(`Goalscorer +${POINTS.scorer}`)
   }
 
   // Assist only counts when the Assist wildcard was played on this match.
-  const assist = pred.pred_assist?.trim().toLowerCase()
+  const assist = pred.pred_assist ? normalizeName(pred.pred_assist) : ''
   if (pred.wc_assist && assist && assisters.includes(assist)) {
     total += POINTS.assist
     breakdown.push(`Assist +${POINTS.assist}`)

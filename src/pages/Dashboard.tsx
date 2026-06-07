@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
@@ -8,6 +8,7 @@ import { StatCard } from '../components/StatCard'
 import { WildcardChips } from '../components/WildcardChips'
 import { Leaderboard } from '../components/Leaderboard'
 import { MatchCard, type PredictionInput } from '../components/MatchCard'
+import { MatchdayBar, MATCHDAYS, type MatchdayKey } from '../components/MatchdayBar'
 import { Spinner } from '../components/Spinner'
 import type { LeaderboardRow, Match, Prediction, PredictionPhase } from '../types'
 
@@ -119,6 +120,38 @@ export default function Dashboard() {
     return map
   }, [preds])
 
+  // Group matches into rounds (MD1..MD5); anything unassigned/out-of-range falls
+  // into an "Other" bucket so it stays visible until a round is assigned.
+  const { byRound, counts, otherMatches } = useMemo(() => {
+    const byRound = new Map<number, Match[]>()
+    const otherMatches: Match[] = []
+    const counts: Record<number, number> = {}
+    for (const m of matchesQ.data ?? []) {
+      const md = m.matchday
+      if (md != null && (MATCHDAYS as readonly number[]).includes(md)) {
+        const arr = byRound.get(md) ?? []
+        arr.push(m)
+        byRound.set(md, arr)
+        counts[md] = (counts[md] ?? 0) + 1
+      } else {
+        otherMatches.push(m)
+      }
+    }
+    return { byRound, counts, otherMatches }
+  }, [matchesQ.data])
+
+  // Default to the first round that has matches (then "Other", then MD1).
+  const defaultMd: MatchdayKey = useMemo(() => {
+    const first = MATCHDAYS.find((md) => (counts[md] ?? 0) > 0)
+    if (first) return first
+    if (otherMatches.length > 0) return 'other'
+    return 1
+  }, [counts, otherMatches])
+
+  const [activeMd, setActiveMd] = useState<MatchdayKey | null>(null)
+  const active = activeMd ?? defaultMd
+  const shownMatches = active === 'other' ? otherMatches : (byRound.get(active) ?? [])
+
   const loading = matchesQ.isLoading || predsQ.isLoading
 
   return (
@@ -156,27 +189,37 @@ export default function Dashboard() {
             <div className="flex justify-center py-12">
               <Spinner label="Loading matches…" />
             </div>
+          ) : matchesQ.data?.length === 0 ? (
+            <p className="text-white/40">No matches scheduled yet.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              {matchesQ.data?.map((m) => {
-                const mp = predsByMatch.get(m.id)
-                return (
-                  <MatchCard
-                    key={m.id}
-                    match={m}
-                    initial={mp?.initial}
-                    late={mp?.late}
-                    remaining={remaining}
-                    onSubmit={(values, phase) =>
-                      submit.mutateAsync({ matchId: m.id, values, phase })
-                    }
-                  />
-                )
-              })}
-              {matchesQ.data?.length === 0 && (
-                <p className="text-white/40">No matches scheduled yet.</p>
-              )}
-            </div>
+            <>
+              <MatchdayBar
+                counts={counts}
+                otherCount={otherMatches.length}
+                active={active}
+                onSelect={setActiveMd}
+              />
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {shownMatches.map((m) => {
+                  const mp = predsByMatch.get(m.id)
+                  return (
+                    <MatchCard
+                      key={m.id}
+                      match={m}
+                      initial={mp?.initial}
+                      late={mp?.late}
+                      remaining={remaining}
+                      onSubmit={(values, phase) =>
+                        submit.mutateAsync({ matchId: m.id, values, phase })
+                      }
+                    />
+                  )
+                })}
+                {shownMatches.length === 0 && (
+                  <p className="text-white/40">No matches in this round yet.</p>
+                )}
+              </div>
+            </>
           )}
         </section>
 

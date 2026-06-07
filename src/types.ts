@@ -23,6 +23,7 @@ export interface Match {
   kickoff: string // ISO timestamp
   halftime_open: boolean
   is_test: boolean
+  matchday: number | null // logical round (MD1..MD5); null = unassigned
   final_home: number | null
   final_away: number | null
   scorers: string[] | null
