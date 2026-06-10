@@ -1,4 +1,5 @@
 import type { LeaderboardRow } from '../types'
+import { Avatar } from './Avatar'
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
@@ -33,12 +34,15 @@ export function Leaderboard({
                   {MEDALS[i] ?? i + 1}
                 </td>
                 <td className="px-4 py-3 font-semibold">
-                  {row.display_name}
-                  {isMe && (
-                    <span className="ml-2 rounded bg-sky-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-sky-accent">
-                      YOU
-                    </span>
-                  )}
+                  <span className="flex items-center gap-2.5">
+                    <Avatar url={row.avatar_url} name={row.display_name} size="sm" />
+                    <span className="truncate">{row.display_name}</span>
+                    {isMe && (
+                      <span className="rounded bg-sky-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-sky-accent">
+                        YOU
+                      </span>
+                    )}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-right font-display text-base font-extrabold text-sky-accent">
                   {row.total_points}

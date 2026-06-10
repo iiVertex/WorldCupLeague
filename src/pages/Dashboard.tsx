@@ -6,7 +6,7 @@ import { useToast } from '../components/Toast'
 import { Header } from '../components/Header'
 import { StatCard } from '../components/StatCard'
 import { WildcardChips } from '../components/WildcardChips'
-import { Leaderboard } from '../components/Leaderboard'
+import { LeaderboardModal } from '../components/LeaderboardModal'
 import { MatchCard, type PredictionInput } from '../components/MatchCard'
 import { MatchdayBar, MATCHDAYS, type MatchdayKey } from '../components/MatchdayBar'
 import { Spinner } from '../components/Spinner'
@@ -148,6 +148,7 @@ export default function Dashboard() {
     return 1
   }, [counts, otherMatches])
 
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false)
   const [activeMd, setActiveMd] = useState<MatchdayKey | null>(null)
   const active = activeMd ?? defaultMd
   const shownMatches = active === 'other' ? otherMatches : (byRound.get(active) ?? [])
@@ -181,6 +182,14 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+
+        {/* Quick access to standings */}
+        <button
+          className="btn-primary w-full py-3 text-base"
+          onClick={() => setLeaderboardOpen(true)}
+        >
+          🏆 View Leaderboard
+        </button>
 
         {/* Matches */}
         <section>
@@ -222,13 +231,15 @@ export default function Dashboard() {
             </>
           )}
         </section>
-
-        {/* Leaderboard */}
-        <section>
-          <h2 className="mb-4 font-display text-xl font-extrabold">Leaderboard</h2>
-          <Leaderboard rows={leaderboardQ.data ?? []} currentPlayerId={player?.id} />
-        </section>
       </main>
+
+      {leaderboardOpen && (
+        <LeaderboardModal
+          rows={leaderboardQ.data ?? []}
+          currentPlayerId={player?.id}
+          onClose={() => setLeaderboardOpen(false)}
+        />
+      )}
     </div>
   )
 }

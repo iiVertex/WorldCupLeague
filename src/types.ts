@@ -10,6 +10,7 @@ export interface Player {
   wc_double: number
   wc_late: number
   wc_assist: number
+  avatar_url: string | null
 }
 
 // As returned by the `match_view` (player feed) and flattened admin query.
@@ -60,6 +61,7 @@ export interface LeaderboardRow {
   username: string
   display_name: string
   total_points: number
+  avatar_url: string | null
 }
 
 // Derived match lifecycle state used by the UI.
