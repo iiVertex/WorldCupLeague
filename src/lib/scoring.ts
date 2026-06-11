@@ -109,3 +109,18 @@ export function matchStatus(match: Match, now: Date = new Date()): MatchStatus {
 
 export const isLocked = (match: Match, now: Date = new Date()) =>
   new Date(match.kickoff) <= now
+
+// An admin (who is also a participant) may only see OTHER players' predictions
+// once a match has effectively finished — i.e. this many hours after kickoff —
+// or once results are published. A match runs ~2h. MUST match the interval in
+// the `predictions_select` RLS policy (supabase/schema.sql).
+export const ADMIN_REVEAL_AFTER_KICKOFF_HOURS = 2
+
+/** Whether the admin is allowed to view everyone's predictions for this match. */
+export function adminCanSeePredictions(match: Match, now: Date = new Date()): boolean {
+  if (match.results_published) return true
+  return (
+    now.getTime() >=
+    new Date(match.kickoff).getTime() + ADMIN_REVEAL_AFTER_KICKOFF_HOURS * 3_600_000
+  )
+}

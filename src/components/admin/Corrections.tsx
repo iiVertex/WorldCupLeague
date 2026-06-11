@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../../lib/supabase'
+import { adminCanSeePredictions } from '../../lib/scoring'
 import { useToast } from '../Toast'
 import type { Match, Player, Prediction } from '../../types'
 
@@ -18,9 +19,14 @@ export function Corrections({
   const toast = useToast()
   const [matchId, setMatchId] = useState<number | ''>('')
 
+  // Admins are participants too, so other players' picks stay hidden until the
+  // match has effectively finished (2h after kickoff) or results are published.
+  const selectedMatch = matchId !== '' ? matches.find((m) => m.id === matchId) : undefined
+  const canSee = selectedMatch ? adminCanSeePredictions(selectedMatch) : false
+
   const predsQ = useQuery({
     queryKey: ['admin-preds', matchId],
-    enabled: matchId !== '',
+    enabled: matchId !== '' && canSee,
     queryFn: async (): Promise<PredWithPlayer[]> => {
       const { data, error } = await supabase
         .from('predictions')
@@ -63,7 +69,14 @@ export function Corrections({
           ))}
         </select>
 
-        {matchId !== '' && (
+        {matchId !== '' && !canSee && (
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-center text-sm text-white/60">
+            🔒 Predictions are hidden until 2 hours after kickoff (or once results are
+            published) to keep things fair.
+          </div>
+        )}
+
+        {matchId !== '' && canSee && (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-white/50">

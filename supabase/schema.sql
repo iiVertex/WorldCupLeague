@@ -191,46 +191,60 @@ create policy results_read on public.match_results for select using (
 create policy results_admin_write on public.match_results for all
   using (public.is_admin()) with check (public.is_admin());
 
--- predictions:
---   read   → own, or admin, or any prediction on a published match
---   insert → own, and (initial before kickoff) or (late while half-time open)
---   update → same window rules
---   admin  → full access (corrections)
-drop policy if exists preds_select    on public.predictions;
-drop policy if exists preds_insert    on public.predictions;
-drop policy if exists preds_update    on public.predictions;
-drop policy if exists preds_admin_all on public.predictions;
+-- predictions (policy names mirror the live DB, which uses `predictions_*`):
+--   read   → own row only, OR — for an admin — once the match is published or
+--            >=2h past kickoff. Admins are participants too, so they must NOT see
+--            other players' picks before a match has effectively finished.
+--   insert → own, and (initial within the 10h window before kickoff) or
+--            (late while half-time open)
+--   update → own within the same window, OR admin (corrections)
+--   delete → admin only
+-- NOTE: there is intentionally NO blanket admin SELECT and NO `FOR ALL` admin
+-- policy — either would re-grant admins unconditional reads and defeat the gate.
+drop policy if exists predictions_select       on public.predictions;
+drop policy if exists predictions_insert       on public.predictions;
+drop policy if exists predictions_update       on public.predictions;
+drop policy if exists predictions_admin_delete on public.predictions;
 
-create policy preds_select on public.predictions for select using (
+create policy predictions_select on public.predictions for select using (
   player_id = auth.uid()
-  or public.is_admin()
-  or exists (select 1 from public.matches m where m.id = match_id and m.results_published)
+  or (
+    public.is_admin()
+    and exists (
+      select 1 from public.matches m
+      where m.id = match_id
+        and (m.results_published or now() >= m.kickoff + interval '2 hours')
+    )
+  )
 );
 
-create policy preds_insert on public.predictions for insert with check (
+create policy predictions_insert on public.predictions for insert with check (
   player_id = auth.uid()
   and exists (
     select 1 from public.matches m
     where m.id = match_id
-      and ((phase = 'initial' and now() < m.kickoff)
+      and ((phase = 'initial' and now() >= m.kickoff - interval '10 hours' and now() < m.kickoff)
         or (phase = 'late'    and m.halftime_open))
   )
 );
 
-create policy preds_update on public.predictions for update
-  using (player_id = auth.uid())
+create policy predictions_update on public.predictions for update
+  using (player_id = auth.uid() or public.is_admin())
   with check (
-    player_id = auth.uid()
-    and exists (
-      select 1 from public.matches m
-      where m.id = match_id
-        and ((phase = 'initial' and now() < m.kickoff)
-          or (phase = 'late'    and m.halftime_open))
+    public.is_admin()
+    or (
+      player_id = auth.uid()
+      and exists (
+        select 1 from public.matches m
+        where m.id = match_id
+          and ((phase = 'initial' and now() >= m.kickoff - interval '10 hours' and now() < m.kickoff)
+            or (phase = 'late'    and m.halftime_open))
+      )
     )
   );
 
-create policy preds_admin_all on public.predictions for all
-  using (public.is_admin()) with check (public.is_admin());
+create policy predictions_admin_delete on public.predictions for delete
+  using (public.is_admin());
 
 -- ============================ GRANTS =========================================
 grant usage on schema public to anon, authenticated;
