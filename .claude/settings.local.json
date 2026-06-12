@@ -23,7 +23,8 @@
       "Bash(curl -s \"https://world-cup-league-three.vercel.app/assets/index-LB-JRb43.js\")",
       "WebSearch",
       "Bash(Get-ChildItem -Recurse -Name -Filter CLAUDE.md)",
-      "mcp__supabase__get_logs"
+      "mcp__supabase__get_logs",
+      "Bash(npx tsc *)"
     ]
   },
   "enableAllProjectMcpServers": true,

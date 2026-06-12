@@ -52,6 +52,9 @@ export function scorePrediction(
   const assisters = (match.assisters ?? []).map(normalizeName)
   const breakdown: string[] = []
   let total = 0
+  // The wrong-assist penalty is applied AFTER the Double Points ×2, so it is
+  // never doubled. Tracked separately from `total` for that reason.
+  let penalty = 0
 
   if (pred.pred_home === final_home) {
     total += POINTS.homeScore
@@ -72,16 +75,27 @@ export function scorePrediction(
     breakdown.push(`Goalscorer +${POINTS.scorer}`)
   }
 
-  // Assist only counts when the Assist wildcard was played on this match.
+  // The assist pick only matters when the Assist wildcard was played on this
+  // match: a correct assister scores +1, a wrong one is penalised −1.
   const assist = pred.pred_assist ? normalizeName(pred.pred_assist) : ''
-  if (pred.wc_assist && assist && assisters.includes(assist)) {
-    total += POINTS.assist
-    breakdown.push(`Assist +${POINTS.assist}`)
+  if (pred.wc_assist && assist) {
+    if (assisters.includes(assist)) {
+      total += POINTS.assist
+      breakdown.push(`Assist +${POINTS.assist}`)
+    } else {
+      penalty = POINTS.assist
+    }
   }
 
   if (pred.wc_double) {
     total *= 2
     breakdown.push('Double Points ×2')
+  }
+
+  // Applied after doubling so the penalty is never multiplied.
+  if (penalty) {
+    total -= penalty
+    breakdown.push(`Wrong assist −${penalty}`)
   }
 
   return { total, breakdown }

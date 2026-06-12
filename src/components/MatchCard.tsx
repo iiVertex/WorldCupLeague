@@ -30,13 +30,16 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
   const phase: PredictionPhase = status === 'halftime' ? 'late' : 'initial'
   const source = phase === 'late' ? (late ?? initial) : initial
 
+  // The Assist wildcard may not be played on a half-time (late) prediction.
+  const assistAllowed = phase !== 'late'
+
   const [form, setForm] = useState<PredictionInput>(() => ({
     pred_home: source?.pred_home ?? '',
     pred_away: source?.pred_away ?? '',
     pred_scorer: source?.pred_scorer ?? '',
-    pred_assist: source?.pred_assist ?? '',
+    pred_assist: assistAllowed ? (source?.pred_assist ?? '') : '',
     wc_double: source?.wc_double ?? false,
-    wc_assist: source?.wc_assist ?? false,
+    wc_assist: assistAllowed ? (source?.wc_assist ?? false) : false,
   }))
   const [saving, setSaving] = useState(false)
 
@@ -45,7 +48,8 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
 
   // Wildcard availability: allow if you already had it on this match, or have some left.
   const canDouble = form.wc_double || remaining.double > 0 || !!source?.wc_double
-  const canAssist = form.wc_assist || remaining.assist > 0 || !!source?.wc_assist
+  const canAssist =
+    assistAllowed && (form.wc_assist || remaining.assist > 0 || !!source?.wc_assist)
   const needsLateWildcard = phase === 'late' && !late // first late submission consumes one
   const lateBlocked = needsLateWildcard && remaining.late <= 0
 
@@ -194,14 +198,25 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
             <label className="label">Assist</label>
             <input
               className="input"
-              placeholder={form.wc_assist ? 'e.g. Di María' : 'Activate the 🅰 Assist card to predict'}
+              placeholder={
+                !assistAllowed
+                  ? 'Assist card not available at half-time'
+                  : form.wc_assist
+                    ? 'e.g. Di María'
+                    : 'Activate the 🅰 Assist card to predict'
+              }
               value={form.pred_assist}
-              disabled={!editable || !form.wc_assist}
+              disabled={!editable || !form.wc_assist || !assistAllowed}
               onChange={(e) => set('pred_assist', e.target.value)}
             />
-            {editable && !form.wc_assist && (
+            {editable && assistAllowed && !form.wc_assist && (
               <p className="mt-1 text-xs text-white/40">
-                Play the 🅰 Assist card below to enter an assist prediction (+1 if correct).
+                Play the 🅰 Assist card below to enter an assist prediction (+1 if correct, −1 if wrong).
+              </p>
+            )}
+            {editable && !assistAllowed && (
+              <p className="mt-1 text-xs text-white/40">
+                The 🅰 Assist card can't be played on a half-time prediction.
               </p>
             )}
           </div>
