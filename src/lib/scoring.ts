@@ -8,7 +8,10 @@ export const POINTS = {
   awayScore: 1,
   result: 1,
   scorer: 1,
-  assist: 1,
+  // Assist (only when the Assist wildcard is played): +2 correct, −1 wrong.
+  // Both are excluded from the Double Points ×2.
+  assistCorrect: 2,
+  assistWrong: 1,
 } as const
 
 // Non-decomposing accented letters the SQL `normalize_name` folds via translate()
@@ -52,9 +55,10 @@ export function scorePrediction(
   const assisters = (match.assisters ?? []).map(normalizeName)
   const breakdown: string[] = []
   let total = 0
-  // The wrong-assist penalty is applied AFTER the Double Points ×2, so it is
+  // The assist bonus/penalty is applied AFTER the Double Points ×2, so it is
   // never doubled. Tracked separately from `total` for that reason.
-  let penalty = 0
+  // (+2 correct, −1 wrong; 0 when the assist wildcard wasn't played.)
+  let assistAdj = 0
 
   if (pred.pred_home === final_home) {
     total += POINTS.homeScore
@@ -76,15 +80,12 @@ export function scorePrediction(
   }
 
   // The assist pick only matters when the Assist wildcard was played on this
-  // match: a correct assister scores +1, a wrong one is penalised −1.
+  // match: a correct assister scores +2, a wrong one is penalised −1. The assist
+  // bonus/penalty is never affected by Double Points, so it's held aside and
+  // applied after the ×2.
   const assist = pred.pred_assist ? normalizeName(pred.pred_assist) : ''
   if (pred.wc_assist && assist) {
-    if (assisters.includes(assist)) {
-      total += POINTS.assist
-      breakdown.push(`Assist +${POINTS.assist}`)
-    } else {
-      penalty = POINTS.assist
-    }
+    assistAdj = assisters.includes(assist) ? POINTS.assistCorrect : -POINTS.assistWrong
   }
 
   if (pred.wc_double) {
@@ -92,10 +93,13 @@ export function scorePrediction(
     breakdown.push('Double Points ×2')
   }
 
-  // Applied after doubling so the penalty is never multiplied.
-  if (penalty) {
-    total -= penalty
-    breakdown.push(`Wrong assist −${penalty}`)
+  // Applied after doubling so the assist adjustment is never multiplied.
+  if (assistAdj > 0) {
+    total += assistAdj
+    breakdown.push(`Assist +${assistAdj}`)
+  } else if (assistAdj < 0) {
+    total += assistAdj
+    breakdown.push(`Wrong assist −${-assistAdj}`)
   }
 
   return { total, breakdown }
