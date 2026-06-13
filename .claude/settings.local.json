@@ -24,7 +24,8 @@
       "WebSearch",
       "Bash(Get-ChildItem -Recurse -Name -Filter CLAUDE.md)",
       "mcp__supabase__get_logs",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell(npx tsc --noEmit)"
     ]
   },
   "enableAllProjectMcpServers": true,

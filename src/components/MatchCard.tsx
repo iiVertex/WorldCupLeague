@@ -226,7 +226,7 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
             />
             {editable && assistAllowed && !form.wc_assist && (
               <p className="mt-1 text-xs text-white/40">
-                Play the 🅰 Assist card below to enter an assist prediction (+1 if correct, −1 if wrong).
+                Play the 🅰 Assist card below to enter an assist prediction (+2 if correct, −1 if wrong).
               </p>
             )}
             {editable && !assistAllowed && (
@@ -251,7 +251,7 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
               onChange={(v) => set('wc_double', v)}
             />
             <Wildcard
-              label="🅰 Assist +1"
+              label="🅰 Assist +2"
               checked={form.wc_assist}
               disabled={!editable || !canAssist}
               onChange={(v) =>
