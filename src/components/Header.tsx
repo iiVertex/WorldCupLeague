@@ -24,7 +24,7 @@ export function Header() {
             alt="FIFA World Cup 26"
             className="h-8 w-auto rounded-md bg-white p-1 sm:h-10"
           />
-          <span className="truncate font-display text-sm font-extrabold text-sky-accent sm:text-xl">
+          <span className="font-display text-sm font-extrabold leading-tight text-sky-accent sm:truncate sm:text-xl">
             World Cup 2026 League
           </span>
         </Link>
@@ -35,7 +35,8 @@ export function Header() {
               to={pathname === '/admin' ? '/' : '/admin'}
               className="btn-ghost px-3 py-2 text-xs sm:text-sm"
             >
-              {pathname === '/admin' ? '← Dashboard' : '⚙ Admin'}
+              <span className="sm:hidden">{pathname === '/admin' ? '←' : '⚙'}</span>
+              <span className="hidden sm:inline">{pathname === '/admin' ? '← Dashboard' : '⚙ Admin'}</span>
             </Link>
           )}
           {player && (
