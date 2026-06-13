@@ -28,10 +28,18 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
 
   // During half-time we edit the (new) late prediction; otherwise the initial one.
   const phase: PredictionPhase = status === 'halftime' ? 'late' : 'initial'
-  const source = phase === 'late' ? (late ?? initial) : initial
+  const editable = status === 'upcoming' || status === 'halftime'
+
+  // Show the pick that actually counts (late ?? initial) except while editing the
+  // initial prediction — otherwise a locked second-half match would render the
+  // superseded initial pick instead of the submitted late one.
+  const source = phase === 'late' || !editable ? (late ?? initial) : initial
 
   // The Assist wildcard may not be played on a half-time (late) prediction.
   const assistAllowed = phase !== 'late'
+  // Double Points can't be switched on at half-time: it only counts if it was
+  // activated on the initial pick (which carries through via `source`).
+  const doubleAllowed = phase !== 'late'
 
   const [form, setForm] = useState<PredictionInput>(() => ({
     pred_home: source?.pred_home ?? '',
@@ -43,8 +51,8 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
   }))
   const [saving, setSaving] = useState(false)
 
-  const editable = status === 'upcoming' || status === 'halftime'
   const effective = late ?? initial // which prediction actually counts
+  const overridden = published && !!effective?.points_overridden
 
   // Wildcard availability: allow if you already had it on this match, or have some left.
   const canDouble = form.wc_double || remaining.double > 0 || !!source?.wc_double
@@ -126,14 +134,21 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
                 Your pick: {effective.pred_home}–{effective.pred_away}
                 {effective.pred_scorer ? ` · ${effective.pred_scorer}` : ''}
               </span>
-              <span className="font-display text-lg font-extrabold text-sky-accent">
-                +{earned?.total ?? effective.points} pts
+              <span className="flex items-center gap-2">
+                {overridden && (
+                  <span className="badge border border-warn/40 bg-warn/10 text-warn">
+                    Manually updated
+                  </span>
+                )}
+                <span className="font-display text-lg font-extrabold text-sky-accent">
+                  +{overridden ? effective.points : (earned?.total ?? effective.points)} pts
+                </span>
               </span>
             </div>
           ) : (
             <p className="mt-2 text-white/40">You didn't predict this match.</p>
           )}
-          {earned && earned.breakdown.length > 0 && (
+          {!overridden && earned && earned.breakdown.length > 0 && (
             <p className="mt-1 text-xs text-white/40">{earned.breakdown.join(' · ')}</p>
           )}
         </div>
@@ -221,11 +236,18 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
             )}
           </div>
 
+          {editable && !doubleAllowed && (
+            <p className="text-xs text-white/40">
+              ✕2 Double Points can't be switched on at half-time — it only counts if you
+              activated it on your initial prediction.
+            </p>
+          )}
+
           <div className="flex flex-wrap gap-3 pt-1">
             <Wildcard
               label="✕2 Double Points"
               checked={form.wc_double}
-              disabled={!editable || !canDouble}
+              disabled={!editable || !doubleAllowed || !canDouble}
               onChange={(v) => set('wc_double', v)}
             />
             <Wildcard

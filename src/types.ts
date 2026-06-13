@@ -53,6 +53,7 @@ export interface Prediction {
   wc_assist: boolean
   phase: PredictionPhase
   points: number
+  points_overridden: boolean
   submitted_at: string
 }
 

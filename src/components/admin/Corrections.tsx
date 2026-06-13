@@ -38,7 +38,10 @@ export function Corrections({
   })
 
   const savePoints = async (predId: number, points: number) => {
-    const { error } = await supabase.from('predictions').update({ points }).eq('id', predId)
+    const { error } = await supabase
+      .from('predictions')
+      .update({ points, points_overridden: true })
+      .eq('id', predId)
     if (error) return toast.error(error.message)
     toast.success('Points updated')
     onChanged()
@@ -164,6 +167,7 @@ function PredRow({
         <button className="btn-ghost px-2 py-1 text-xs" onClick={() => onSave(pred.id, points)}>
           Save
         </button>
+        {pred.points_overridden && <span className="text-xs text-warn">manual</span>}
       </td>
     </tr>
   )
