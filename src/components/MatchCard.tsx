@@ -40,6 +40,9 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
   // Double Points can't be switched on at half-time: it only counts if it was
   // activated on the initial pick (which carries through via `source`).
   const doubleAllowed = phase !== 'late'
+  // The goalscorer is locked once the match kicks off: at half-time you may only
+  // change the scoreline, not the scorer. The initial pick carries through `source`.
+  const scorerAllowed = phase !== 'late'
 
   const [form, setForm] = useState<PredictionInput>(() => ({
     pred_home: source?.pred_home ?? '',
@@ -204,9 +207,14 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
               className="input"
               placeholder="e.g. Messi"
               value={form.pred_scorer}
-              disabled={!editable}
+              disabled={!editable || !scorerAllowed}
               onChange={(e) => set('pred_scorer', e.target.value)}
             />
+            {editable && !scorerAllowed && (
+              <p className="mt-1 text-xs text-white/40">
+                The goalscorer is locked at half-time — you can only change the scoreline.
+              </p>
+            )}
           </div>
 
           <div>
