@@ -40,9 +40,11 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
   // Double Points can't be switched on at half-time: it only counts if it was
   // activated on the initial pick (which carries through via `source`).
   const doubleAllowed = phase !== 'late'
-  // The goalscorer is locked once the match kicks off: at half-time you may only
-  // change the scoreline, not the scorer. The initial pick carries through `source`.
-  const scorerAllowed = phase !== 'late'
+  // At half-time the goalscorer is no longer locked: the player may either keep
+  // the scorer from their initial pick or predict a new player to score in the
+  // second half. `scorerMode` tracks that choice (initial phase is always 'keep').
+  const isLate = phase === 'late'
+  const initialScorer = initial?.pred_scorer ?? ''
 
   const [form, setForm] = useState<PredictionInput>(() => ({
     pred_home: source?.pred_home ?? '',
@@ -52,7 +54,26 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
     wc_double: source?.wc_double ?? false,
     wc_assist: assistAllowed ? (source?.wc_assist ?? false) : false,
   }))
+  // 'new' when an existing late pick already diverges from the initial scorer.
+  const [scorerMode, setScorerMode] = useState<'keep' | 'new'>(() =>
+    isLate && late && (late.pred_scorer ?? '') !== initialScorer ? 'new' : 'keep',
+  )
   const [saving, setSaving] = useState(false)
+
+  // The scorer field is editable normally pre-kickoff, and at half-time only in
+  // 'new' mode (in 'keep' mode it mirrors the locked initial pick).
+  const scorerEditable = editable && (!isLate || scorerMode === 'new')
+
+  const selectScorerMode = (mode: 'keep' | 'new') => {
+    setScorerMode(mode)
+    setForm((f) => ({
+      ...f,
+      // Keep → snap back to the initial scorer. New → clear it (unless the player
+      // already typed something different) so they enter a fresh second-half pick.
+      pred_scorer:
+        mode === 'keep' ? initialScorer : f.pred_scorer === initialScorer ? '' : f.pred_scorer,
+    }))
+  }
 
   const effective = late ?? initial // which prediction actually counts
   const overridden = published && !!effective?.points_overridden
@@ -203,16 +224,45 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
 
           <div>
             <label className="label">Goalscorer</label>
+            {isLate && editable && (
+              <div className="mb-2 grid grid-cols-2 gap-2">
+                <ScorerModeButton
+                  active={scorerMode === 'keep'}
+                  onClick={() => selectScorerMode('keep')}
+                  title="Keep initial pick"
+                  subtitle={initialScorer || 'no scorer picked'}
+                />
+                <ScorerModeButton
+                  active={scorerMode === 'new'}
+                  onClick={() => selectScorerMode('new')}
+                  title="New 2nd-half scorer"
+                  subtitle="pick a fresh player"
+                />
+              </div>
+            )}
             <input
               className="input"
-              placeholder="e.g. Messi"
+              placeholder={
+                isLate && scorerMode === 'new' ? 'New 2nd-half scorer, e.g. Messi' : 'e.g. Messi'
+              }
               value={form.pred_scorer}
-              disabled={!editable || !scorerAllowed}
+              disabled={!scorerEditable}
               onChange={(e) => set('pred_scorer', e.target.value)}
             />
-            {editable && !scorerAllowed && (
-              <p className="mt-1 text-xs text-white/40">
-                The goalscorer is locked at half-time — you can only change the scoreline.
+            {isLate && editable && (
+              <p className="mt-1 text-xs text-white/50">
+                {scorerMode === 'keep' ? (
+                  initialScorer ? (
+                    <>
+                      🔒 Keeping your initial goalscorer:{' '}
+                      <strong className="text-white/70">{initialScorer}</strong>
+                    </>
+                  ) : (
+                    <>You didn't pick an initial goalscorer.</>
+                  )
+                ) : (
+                  <>✏️ Predicting a new player to score in the second half.</>
+                )}
               </p>
             )}
           </div>
@@ -326,6 +376,33 @@ function Team({
         {name}
       </span>
     </div>
+  )
+}
+
+function ScorerModeButton({
+  active,
+  onClick,
+  title,
+  subtitle,
+}: {
+  active: boolean
+  onClick: () => void
+  title: string
+  subtitle: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-start rounded-lg border px-3 py-2 text-left transition ${
+        active
+          ? 'border-warn bg-warn/15 text-warn'
+          : 'border-white/10 text-white/60 hover:bg-white/5'
+      }`}
+    >
+      <span className="text-xs font-semibold">{title}</span>
+      <span className="w-full truncate text-[11px] opacity-70">{subtitle}</span>
+    </button>
   )
 }
 
