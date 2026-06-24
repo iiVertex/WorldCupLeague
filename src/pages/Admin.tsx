@@ -81,6 +81,26 @@ export default function Admin() {
     onError: (e) => toast.error(e instanceof Error ? e.message : 'Scoring failed'),
   })
 
+  // The "most recent" match: the latest one that has already kicked off, or — if
+  // none have yet — the next upcoming one. Used by the jump-to button so the admin
+  // doesn't have to scroll through past rounds. Matches are ordered by kickoff asc.
+  const currentMatchId = (() => {
+    const list = matchesQ.data
+    if (!list || list.length === 0) return null
+    const now = Date.now()
+    let started: Match | null = null
+    for (const m of list) {
+      if (new Date(m.kickoff).getTime() <= now) started = m
+    }
+    return (started ?? list[0]).id
+  })()
+
+  const jumpToCurrent = () => {
+    if (currentMatchId == null) return
+    const el = document.getElementById(`admin-match-${currentMatchId}`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -106,6 +126,11 @@ export default function Admin() {
         {tab === 'matches' && (
           <>
             <AddMatchForm onCreated={refresh} />
+            {currentMatchId != null && (
+              <button className="btn-ghost px-3 py-2 text-sm" onClick={jumpToCurrent}>
+                ⤓ Jump to current match
+              </button>
+            )}
             {matchesQ.isLoading ? (
               <div className="flex justify-center py-12">
                 <Spinner label="Loading matches…" />
@@ -113,13 +138,14 @@ export default function Admin() {
             ) : (
               <div className="space-y-4">
                 {matchesQ.data?.map((m) => (
-                  <MatchAdminRow
-                    key={m.id}
-                    match={m}
-                    onChanged={refresh}
-                    onCalculate={() => calcScore.mutate(m.id)}
-                    calculating={calcScore.isPending}
-                  />
+                  <div key={m.id} id={`admin-match-${m.id}`} className="scroll-mt-4">
+                    <MatchAdminRow
+                      match={m}
+                      onChanged={refresh}
+                      onCalculate={() => calcScore.mutate(m.id)}
+                      calculating={calcScore.isPending}
+                    />
+                  </div>
                 ))}
               </div>
             )}

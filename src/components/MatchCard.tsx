@@ -87,8 +87,15 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
 
   const earned = useMemo(() => {
     if (!published || !effective) return null
-    return scorePrediction(match, effective)
-  }, [published, effective, match])
+    // The Assist wildcard can only be played on the initial pick (it's blocked at
+    // half-time), so the assist always lives on the initial row. Source it from
+    // there even when a late prediction supersedes the rest of the pick.
+    return scorePrediction(match, {
+      ...effective,
+      pred_assist: initial?.pred_assist ?? null,
+      wc_assist: initial?.wc_assist ?? false,
+    })
+  }, [published, effective, match, initial])
 
   const set = <K extends keyof PredictionInput>(k: K, v: PredictionInput[K]) =>
     setForm((f) => ({ ...f, [k]: v }))
