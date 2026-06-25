@@ -45,6 +45,10 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
   // second half. `scorerMode` tracks that choice (initial phase is always 'keep').
   const isLate = phase === 'late'
   const initialScorer = initial?.pred_scorer ?? ''
+  // The Assist card can't be played at half-time, but if it was played on the
+  // initial pick we still surface it (read-only) so it doesn't vanish from the card.
+  const initialAssistPlayed = !!initial?.wc_assist
+  const initialAssist = initialAssistPlayed ? (initial?.pred_assist ?? '') : ''
 
   const [form, setForm] = useState<PredictionInput>(() => ({
     pred_home: source?.pred_home ?? '',
@@ -273,12 +277,12 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
               className="input"
               placeholder={
                 !assistAllowed
-                  ? 'Assist card not available at half-time'
+                  ? 'No Assist card played'
                   : form.wc_assist
                     ? 'e.g. Di María'
                     : 'Activate the 🅰 Assist card to predict'
               }
-              value={form.pred_assist}
+              value={assistAllowed ? form.pred_assist : initialAssist}
               disabled={!editable || !form.wc_assist || !assistAllowed}
               onChange={(e) => set('pred_assist', e.target.value)}
             />
@@ -289,7 +293,19 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
             )}
             {editable && !assistAllowed && (
               <p className="mt-1 text-xs text-white/40">
-                The 🅰 Assist card can't be played on a half-time prediction.
+                {initialAssistPlayed ? (
+                  <>
+                    🅰 Assist card played on your initial prediction
+                    {initialAssist ? (
+                      <>
+                        : <strong className="text-white/70">{initialAssist}</strong>
+                      </>
+                    ) : null}
+                    . It can't be changed at half-time.
+                  </>
+                ) : (
+                  <>The 🅰 Assist card can't be played on a half-time prediction.</>
+                )}
               </p>
             )}
           </div>
@@ -310,7 +326,7 @@ export function MatchCard({ match, initial, late, remaining, onSubmit }: Props) 
             />
             <Wildcard
               label="🅰 Assist +2"
-              checked={form.wc_assist}
+              checked={form.wc_assist || (!assistAllowed && initialAssistPlayed)}
               disabled={!editable || !canAssist}
               onChange={(v) =>
                 setForm((f) => ({ ...f, wc_assist: v, pred_assist: v ? f.pred_assist : '' }))
