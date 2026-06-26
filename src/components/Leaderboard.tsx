@@ -1,7 +1,24 @@
 import type { LeaderboardRow } from '../types'
+import { useRankMovement } from '../hooks/useRankMovement'
 import { Avatar } from './Avatar'
 
 const MEDALS = ['🥇', '🥈', '🥉']
+
+function RankMove({ delta }: { delta: number }) {
+  if (delta === 0) {
+    return <span className="text-white/25" title="No change">–</span>
+  }
+  const up = delta > 0
+  return (
+    <span
+      className={`flex items-center gap-0.5 font-bold ${up ? 'text-green-400' : 'text-red-400'}`}
+      title={`${up ? 'Up' : 'Down'} ${Math.abs(delta)} ${Math.abs(delta) === 1 ? 'place' : 'places'}`}
+    >
+      <span className="leading-none">{up ? '▲' : '▼'}</span>
+      <span className="text-[10px]">{Math.abs(delta)}</span>
+    </span>
+  )
+}
 
 export function Leaderboard({
   rows,
@@ -10,12 +27,14 @@ export function Leaderboard({
   rows: LeaderboardRow[]
   currentPlayerId?: string
 }) {
+  const movements = useRankMovement(rows)
   return (
     <div className="card overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-navy-800 text-sky-accent">
             <th className="px-4 py-3 text-left font-bold">#</th>
+            <th className="px-1 py-3 text-center font-bold" aria-label="Movement"></th>
             <th className="px-4 py-3 text-left font-bold">Player</th>
             <th className="px-4 py-3 text-right font-bold">Points</th>
           </tr>
@@ -32,6 +51,11 @@ export function Leaderboard({
               >
                 <td className="px-4 py-3 font-semibold text-white/70">
                   {MEDALS[i] ?? i + 1}
+                </td>
+                <td className="px-1 py-3 text-center text-xs">
+                  <span className="flex justify-center">
+                    <RankMove delta={movements[row.player_id] ?? 0} />
+                  </span>
                 </td>
                 <td className="px-4 py-3 font-semibold">
                   <span className="flex items-center gap-2.5">
@@ -52,7 +76,7 @@ export function Leaderboard({
           })}
           {rows.length === 0 && (
             <tr>
-              <td colSpan={3} className="px-4 py-8 text-center text-white/40">
+              <td colSpan={4} className="px-4 py-8 text-center text-white/40">
                 No published results yet — points appear once the admin reveals them.
               </td>
             </tr>

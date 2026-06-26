@@ -64,6 +64,7 @@ export default function Admin() {
     qc.invalidateQueries({ queryKey: ['matches'] })
     qc.invalidateQueries({ queryKey: ['admin-players'] })
     qc.invalidateQueries({ queryKey: ['leaderboard'] })
+    qc.invalidateQueries({ queryKey: ['leaderboard-snapshot'] })
     // Wildcard allowances live on the auth player profile, not in a query —
     // refetch it so edits to your own account show without a page reload.
     void refreshPlayer()
