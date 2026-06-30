@@ -9,6 +9,7 @@ import { WildcardChips } from '../components/WildcardChips'
 import { LeaderboardModal } from '../components/LeaderboardModal'
 import { MatchCard, type PredictionInput } from '../components/MatchCard'
 import { MatchdayBar, MATCHDAYS, type MatchdayKey } from '../components/MatchdayBar'
+import { WILDCARD_RESET_MATCHDAY } from '../lib/scoring'
 import { Spinner } from '../components/Spinner'
 import type { LeaderboardRow, Match, Prediction, PredictionPhase } from '../types'
 
@@ -60,22 +61,37 @@ export default function Dashboard() {
 
   const preds = predsQ.data ?? []
 
-  // Remaining wildcards = starting allowance − distinct matches used (edit-safe).
+  // Remaining wildcards = allowance − distinct matches used (edit-safe). Usage is
+  // counted only from WILDCARD_RESET_MATCHDAY onward — cards spent on earlier
+  // matchdays don't count, so the "3 each from MD4" allocation can't drift.
   const remaining = useMemo(() => {
     const allowance = {
       double: player?.wc_double ?? 0,
       late: player?.wc_late ?? 0,
       assist: player?.wc_assist ?? 0,
     }
-    const usedDouble = new Set(preds.filter((p) => p.wc_double).map((p) => p.match_id)).size
-    const usedAssist = new Set(preds.filter((p) => p.wc_assist).map((p) => p.match_id)).size
-    const usedLate = preds.filter((p) => p.phase === 'late').length
+    const matchdayById = new Map<number, number | null>(
+      (matchesQ.data ?? []).map((m) => [m.id, m.matchday]),
+    )
+    const counts = (md: number | null | undefined) =>
+      md != null && md >= WILDCARD_RESET_MATCHDAY
+    const usedDouble = new Set(
+      preds.filter((p) => p.wc_double && counts(matchdayById.get(p.match_id))).map((p) => p.match_id),
+    ).size
+    const usedAssist = new Set(
+      preds.filter((p) => p.wc_assist && counts(matchdayById.get(p.match_id))).map((p) => p.match_id),
+    ).size
+    const usedLate = new Set(
+      preds
+        .filter((p) => p.phase === 'late' && counts(matchdayById.get(p.match_id)))
+        .map((p) => p.match_id),
+    ).size
     return {
       double: Math.max(0, allowance.double - usedDouble),
       late: Math.max(0, allowance.late - usedLate),
       assist: Math.max(0, allowance.assist - usedAssist),
     }
-  }, [preds, player])
+  }, [preds, player, matchesQ.data])
 
   const submit = useMutation({
     mutationFn: async ({

@@ -111,6 +111,12 @@ const resultSign = (a: number, b: number) => Math.sign(a - b)
 // the match is 'scheduled' (locked). Mirrors the predictions RLS policies.
 export const PREDICTION_WINDOW_HOURS = 10
 
+// Wildcards were re-allocated from MD4: every player gets WILDCARD_ALLOWANCE of
+// each card counting only matches from WILDCARD_RESET_MATCHDAY onward. Usage
+// before this matchday does NOT count against the allowance.
+export const WILDCARD_ALLOWANCE = 3
+export const WILDCARD_RESET_MATCHDAY = 4
+
 /** Derive the lifecycle state of a match for UI display. */
 export function matchStatus(match: Match, now: Date = new Date()): MatchStatus {
   if (match.final_home !== null && match.final_away !== null && match.results_published) {
